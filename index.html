@@ -3,12 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bé Học Chữ Cái, Tập Đếm & Cửu Chương - Tác giả: Nguyễn Công Dinh</title>
+    <title>Bé Học Thông Minh – Chữ Cái, Tập Đếm & Cửu Chương Cho Bé</title>
+
+    <!-- SEO Metadata -->
+    <meta name="description" content="Bé Học Thông Minh là ứng dụng học tập trực quan giúp bé làm quen chữ cái tiếng Việt, tập đếm từ 1 đến 100, học cửu chương 2 đến 9 và luyện tập qua trò chơi tương tác.">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Nguyễn Công Dinh">
+    <link rel="canonical" href="https://be-hoc-thong-minh.vercel.app/">
+
+    <!-- PWA & Mobile Web App Meta -->
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Bé Học Thông Minh">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="manifest" href="/manifest.webmanifest">
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="logo.png">
-    <!-- Tailwind CSS -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+
+    <!-- Open Graph (Facebook / Zalo Sharing Preview) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Bé Học Thông Minh – Học Vui Mỗi Ngày">
+    <meta property="og:description" content="Học chữ cái tiếng Việt, tập đếm 1–100, cửu chương 2–9 và luyện tập qua trò chơi tương tác.">
+    <meta property="og:image" content="https://be-hoc-thong-minh.vercel.app/og-image.png">
+    <meta property="og:url" content="https://be-hoc-thong-minh.vercel.app/">
+    <meta property="og:site_name" content="Bé Học Thông Minh">
+    <meta property="og:locale" content="vi_VN">
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bé Học Thông Minh – Học Vui Mỗi Ngày">
+    <meta name="twitter:description" content="Chữ cái, tập đếm, cửu chương và trò chơi luyện tập cho bé.">
+    <meta name="twitter:image" content="https://be-hoc-thong-minh.vercel.app/og-image.png">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Bé Học Thông Minh",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "vi",
+      "description": "Ứng dụng học chữ cái tiếng Việt, tập đếm, cửu chương và luyện tập tương tác cho bé."
+    }
+    </script>
+
+    <!-- Tailwind CSS & Confetti -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
@@ -69,7 +113,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl sm:text-3xl font-bold text-emerald-700 leading-tight">Bé Học Thông Minh</h1>
-                    <p class="text-xs sm:text-sm font-bold text-gray-600 hidden sm:block">Chữ Cái • Tập Đếm • Cửu Chương (2.0D)</p>
+                    <p class="text-xs sm:text-sm font-bold text-gray-600 hidden sm:block">Chữ Cái • Tập Đếm • Cửu Chương (2.0E)</p>
                 </div>
             </div>
 
@@ -355,7 +399,7 @@
                 <div class="flex flex-col sm:flex-row items-center justify-between border-b-2 border-emerald-100 pb-4 mb-6 gap-3">
                     <div class="flex items-center space-x-3">
                         <span class="text-4xl">📚</span>
-                        <h3 id="current-table-title" class="text-2xl sm:text-3xl font-bold text-emerald-900">
+                        <h3 id="current-table-title" class="text-2xl sm:text-3xl font-bold text-emerald-950">
                             Bảng Cửu Chương 2
                         </h3>
                     </div>
@@ -412,7 +456,7 @@
                             <button class="bg-pink-600 text-white font-bold text-xl px-6 py-3 rounded-xl shadow border-b-4 border-pink-800 w-full min-h-[48px]">Vào Chơi</button>
                         </div>
 
-                        <div onclick="startGame('match')" class="glass-card bg-gradient-to-b from-amber-50 to-orange-100 p-6 rounded-3xl border-4 border-orange-200 cursor-pointer card-bounce flex flex-col items-center justify-between">
+                        <div onclick="startGame('match')" class="glass-card bg-gradient-to-b from-amber-50 to-orange-100 p-6 rounded-3xl border-4 border-orange-200 cursor-pointer card-bounce flex flex-col items-center justify-between text-center">
                             <div class="text-6xl mb-3">🧩</div>
                             <h3 class="font-bold text-2xl text-orange-950 mb-2">Lật Hình Ghép Cặp</h3>
                             <p class="text-base text-gray-700 font-bold mb-4">Nối phép nhân với kết quả tương ứng. Rèn luyện trí nhớ siêu đỉnh!</p>
@@ -625,7 +669,7 @@
         </div>
     </div>
 
-    <!-- ==================== KHU VỰC PHỤ HUYNH MODALS (2.0D) ==================== -->
+    <!-- ==================== KHU VỰC PHỤ HUYNH MODALS (2.0E) ==================== -->
 
     <!-- 1. MODAL NHẬP / THIẾT LẬP MÃ PIN PHỤ HUYNH (Z-INDEX 100 ĐẢM BẢO LUÔN NỔI TRÊN CÙNG) -->
     <div id="parent-pin-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 transition-all">
@@ -842,7 +886,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIC TOÀN BỘ BẰNG TIẾNG VIỆT CHUẨN -->
+    <!-- SCRIPT LOGIC TOÀN BỘ BẰNG TIẾNG VIỆT CHUẨN (2.0E) -->
     <script>
         /* 0. HÀM BẢO VỆ XSS (ESCAPE HTML) */
         function escapeHTML(str) {
@@ -1125,7 +1169,7 @@
             localStorage.setItem('cuuchuong_parent_settings', JSON.stringify(parentSettings));
         }
 
-        /* 10. STATE CHÍNH CỦA PHIÊN BẢN 2.0D */
+        /* 10. STATE CHÍNH CỦA PHIÊN BẢN 2.0E */
         let state = {
             childName: localStorage.getItem('cuuchuong_child_name') || '',
             stars: parseInt(localStorage.getItem('cuuchuong_stars') || '0', 10) || 0,
@@ -2667,7 +2711,7 @@
             });
         }
 
-        /* ==================== 23. KHU VỰC PHỤ HUYNH LOGIC (2.0D) ==================== */
+        /* ==================== 23. KHU VỰC PHỤ HUYNH LOGIC ==================== */
         let parentPinActionCallback = null;
         let pinFailedCount = 0;
         let pinLockoutUntil = 0;
@@ -2983,7 +3027,6 @@
             const confirmed = confirm("Bạn có chắc muốn đặt lại toàn bộ tiến trình học của bé?\nTên bé, mã PIN và cài đặt phụ huynh sẽ được giữ lại.");
             if (!confirmed) return;
 
-            // Ẩn dashboard trực tiếp trước khi mở modal PIN
             const dashboard = document.getElementById('parent-dashboard-modal');
             if (dashboard) dashboard.classList.add('hidden');
 
@@ -3031,11 +3074,8 @@
             }
         }
 
-        /* 25. HÀM XÓA SẠCH DỮ LIỆU & BẮT ĐẦU CHO BÉ MỚI (DELETE ALL FOR NEW CHILD) */
+        /* 25. HÀM XÓA SẠCH DỮ LIỆU & BẮT ĐẦU CHO BÉ MỚI (DELETE ALL) */
         function deleteAllDataForNewChild() {
-            console.log('DELETE ALL START');
-
-            // A. Dừng toàn bộ hoạt động runtime
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
             }
@@ -3053,14 +3093,12 @@
                 currentGame.answerLocked = true;
             }
 
-            // B. Xóa TẤT CẢ key localStorage thuộc ứng dụng (tiền tố cuuchuong_)
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('cuuchuong_')) {
                     localStorage.removeItem(key);
                 }
             });
 
-            // C. Reset State trong RAM
             state = {
                 childName: '',
                 stars: 0,
@@ -3084,7 +3122,6 @@
                 studyTimeLimit: 15
             };
 
-            // D. Reset toàn bộ biến runtime
             studySessionActive = false;
             sessionAccumulatedMs = 0;
             sessionActiveStartedAt = null;
@@ -3097,12 +3134,9 @@
             matchLocked = false;
             matchSelected = [];
 
-            // E. Kiểm tra thực tế storage lần cuối & in log debug
             const remainingKeys = Object.keys(localStorage).filter(k => k.startsWith('cuuchuong_'));
             remainingKeys.forEach(k => localStorage.removeItem(k));
-            console.log('Remaining cuuchuong keys:', Object.keys(localStorage).filter(k => k.startsWith('cuuchuong_')));
 
-            // F. Reload sạch trang web
             window.location.replace(window.location.pathname + window.location.search);
         }
 
@@ -3111,19 +3145,27 @@
             const confirmStep = confirm("⚠️ BẠN SẮP XÓA TOÀN BỘ DỮ LIỆU CỦA BÉ HIỆN TẠI.\n\nTên bé, sao, tiến độ, câu sai, huy hiệu, cài đặt và PIN phụ huynh sẽ bị xóa hoàn toàn.\n\nỨng dụng sẽ trở về trạng thái ban đầu để một bé mới sử dụng.\n\nThao tác này không thể hoàn tác. Bạn có chắc chắn muốn tiếp tục?");
             if (!confirmStep) return;
 
-            // Ẩn dashboard trực tiếp trước khi mở modal PIN
             const dashboard = document.getElementById('parent-dashboard-modal');
             if (dashboard) dashboard.classList.add('hidden');
 
             const storedPin = localStorage.getItem('cuuchuong_parent_pin');
             if (storedPin) {
                 openParentPinModal('delete_all', () => {
-                    console.log('DELETE CALLBACK RUNNING');
                     deleteAllDataForNewChild();
                 });
             } else {
                 deleteAllDataForNewChild();
             }
+        }
+
+        /* ==================== 26. SERVICE WORKER REGISTRATION (2.0E) ==================== */
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .catch(err => {
+                        console.warn('Service Worker registration failed:', err);
+                    });
+            });
         }
     </script>
 </body>
