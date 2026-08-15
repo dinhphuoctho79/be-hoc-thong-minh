@@ -671,7 +671,7 @@
 
     <!-- ==================== KHU VỰC PHỤ HUYNH MODALS (2.0E) ==================== -->
 
-    <!-- 1. MODAL NHẬP / THIẾT LẬP MÃ PIN PHỤ HUYNH (Z-INDEX 100 ĐẢM BẢO LUÔN NỔI TRÊN CÙNG) -->
+    <!-- 1. MODAL NHẬP / THIẾT LẬP MÃ PIN PHỤ HUYNH -->
     <div id="parent-pin-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 transition-all">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border-4 border-indigo-400 relative text-center space-y-5">
             <button onclick="closeParentPinModal()" aria-label="Đóng" class="absolute top-4 right-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-10 h-10 font-bold text-xl flex items-center justify-center">✕</button>
@@ -886,7 +886,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIC TOÀN BỘ BẰNG TIẾNG VIỆT CHUẨN (2.0E) -->
+    <!-- SCRIPT LOGIC TOÀN BỘ BẰNG TIẾNG VIỆT CHUẨN (2.0E HOTFIXED AUDIO) -->
     <script>
         /* 0. HÀM BẢO VỆ XSS (ESCAPE HTML) */
         function escapeHTML(str) {
@@ -917,25 +917,45 @@
             return { text: 'Chào Buổi Tối', icon: '🌙' };
         }
 
-        /* 3. HIỆU ỨNG ÂM THANH NỐT NHẠC (WEB AUDIO API - CÓ GUARD SOUND EFFECTS) */
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        /* 3. HIỆU ỨNG ÂM THANH NỐT NHẠC (LAZY AUDIOCONTEXT + USER GESTURE SAFE) */
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return null;
+                audioCtx = new AudioContextClass();
+            }
+            return audioCtx;
+        }
 
         function playTone(freq, duration, type = 'sine', delay = 0) {
             if (!parentSettings.soundEffectsEnabled) return;
-            setTimeout(() => {
+            setTimeout(async () => {
                 try {
-                    if (audioCtx.state === 'suspended') audioCtx.resume();
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
+                    const ctx = getAudioContext();
+                    if (!ctx) return;
+
+                    if (ctx.state === 'suspended') {
+                        await ctx.resume();
+                    }
+
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
                     osc.type = type;
-                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
                     osc.connect(gain);
-                    gain.connect(audioCtx.destination);
+                    gain.connect(ctx.destination);
+
                     osc.start();
-                    osc.stop(audioCtx.currentTime + duration);
-                } catch(e) {}
+                    osc.stop(ctx.currentTime + duration);
+                } catch(e) {
+                    console.warn('Không thể phát hiệu ứng âm thanh:', e);
+                }
             }, delay);
         }
 
@@ -988,7 +1008,7 @@
             return tenStr + " " + ones[unit];
         }
 
-        /* 5. BỘ PHÁT ÂM TIẾNG VIỆT ĐỘC QUYỀN (CÓ GUARD VOICE ENABLED + CALLBACK RUNNING) */
+        /* 5. BỘ PHÁT ÂM TIẾNG VIỆT ĐỘC QUYỀN (KHÔNG PHỤ THUỘC AUDIOCONTEXT) */
         let currentTTSAudio = null;
         let toastTimeout = null;
 
@@ -1017,10 +1037,6 @@
             if (currentTTSAudio) {
                 currentTTSAudio.pause();
                 currentTTSAudio = null;
-            }
-
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
             }
 
             const encodedText = encodeURIComponent(text);
@@ -1056,36 +1072,49 @@
                 return;
             }
 
-            if ('speechSynthesis' in window) {
+            if (!('speechSynthesis' in window)) {
+                if (callback) setTimeout(callback, 1200);
+                return;
+            }
+
+            try {
                 window.speechSynthesis.cancel();
-                window.speechSynthesis.resume();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'vi-VN';
+                utterance.rate = 0.85;
+                utterance.volume = 1.0;
+                utterance.pitch = 1.0;
 
                 const voices = window.speechSynthesis.getVoices();
-                const viVoice = voices.find(v => v.lang && (v.lang.toLowerCase().includes('vi') || v.lang.toLowerCase().includes('vn')));
-
+                const viVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('vi'));
                 if (viVoice) {
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'vi-VN';
                     utterance.voice = viVoice;
-                    utterance.rate = 0.85;
-                    utterance.volume = 1.0;
-
-                    let hasCalled = false;
-                    utterance.onend = () => {
-                        if (!hasCalled && callback) { hasCalled = true; callback(); }
-                    };
-                    utterance.onerror = () => {
-                        if (!hasCalled && callback) { hasCalled = true; callback(); }
-                    };
-
-                    window.speechSynthesis.speak(utterance);
-                    return;
                 }
-            }
 
-            if (callback) {
-                setTimeout(callback, 1200);
+                let finished = false;
+                const finish = () => {
+                    if (!finished && callback) {
+                        finished = true;
+                        callback();
+                    }
+                };
+
+                utterance.onend = finish;
+                utterance.onerror = finish;
+
+                window.speechSynthesis.resume();
+                window.speechSynthesis.speak(utterance);
+            } catch (e) {
+                console.warn('Lỗi SpeechSynthesis:', e);
+                if (callback) setTimeout(callback, 500);
             }
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
         }
 
         /* 6. DỮ LIỆU BẢNG 29 CHỮ CÁI TIẾNG VIỆT */
@@ -3158,7 +3187,7 @@
             }
         }
 
-        /* ==================== 26. SERVICE WORKER REGISTRATION (2.0E) ==================== */
+        /* ==================== 26. SERVICE WORKER REGISTRATION ==================== */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
