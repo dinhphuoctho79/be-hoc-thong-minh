@@ -82,6 +82,86 @@
         .logo-glow {
             box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
         }
+
+
+        /* LED DC - chỉ áp dụng cho khung tác giả & logo DC */
+        @keyframes ledDcFlow {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes ledDcPulse {
+            0%, 100% {
+                box-shadow:
+                    0 0 6px rgba(34, 211, 238, 0.45),
+                    0 0 14px rgba(59, 130, 246, 0.35);
+            }
+            50% {
+                box-shadow:
+                    0 0 10px rgba(34, 211, 238, 0.75),
+                    0 0 22px rgba(139, 92, 246, 0.55);
+            }
+        }
+
+        .led-dc-frame {
+            position: relative;
+            isolation: isolate;
+            border: 2px solid transparent !important;
+            background:
+                linear-gradient(var(--led-dc-inner, #ffffff), var(--led-dc-inner, #ffffff)) padding-box,
+                linear-gradient(
+                    110deg,
+                    #00e5ff,
+                    #2563eb,
+                    #8b5cf6,
+                    #22c55e,
+                    #facc15,
+                    #00e5ff
+                ) border-box !important;
+            background-size: 100% 100%, 300% 300% !important;
+            animation:
+                ledDcFlow 3s linear infinite,
+                ledDcPulse 2.2s ease-in-out infinite;
+        }
+
+        .led-dc-header {
+            --led-dc-inner: #eef2ff;
+        }
+
+        .led-dc-footer {
+            --led-dc-inner: #eef2ff;
+        }
+
+        .led-dc-modal {
+            --led-dc-inner: #ffffff;
+        }
+
+        .led-dc-logo {
+            position: relative;
+            background:
+                linear-gradient(#ffffff, #ffffff) padding-box,
+                linear-gradient(
+                    120deg,
+                    #00e5ff,
+                    #2563eb,
+                    #8b5cf6,
+                    #22c55e,
+                    #00e5ff
+                ) border-box !important;
+            border: 3px solid transparent;
+            background-size: 100% 100%, 300% 300% !important;
+            animation:
+                ledDcFlow 2.6s linear infinite,
+                ledDcPulse 2s ease-in-out infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .led-dc-frame,
+            .led-dc-logo {
+                animation: none !important;
+            }
+        }
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -93,6 +173,30 @@
             background: #4ade80;
             border-radius: 10px;
         }
+
+        /* Đồng hồ & ngày tháng - hiển thị gọn trên Header */
+        .smart-clock-box {
+            background: rgba(255,255,255,0.96);
+            border: 2px solid #a7f3d0;
+            box-shadow: 0 4px 12px rgba(5,150,105,0.12);
+        }
+        .smart-clock-time {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.04em;
+        }
+        @media (max-width: 640px) {
+            .smart-clock-box {
+                padding: 0.3rem 0.55rem !important;
+                border-radius: 0.85rem !important;
+            }
+            .smart-clock-time {
+                font-size: 0.95rem !important;
+            }
+            .smart-clock-date {
+                font-size: 0.65rem !important;
+            }
+        }
+
     </style>
 </head>
 <body class="text-gray-900 pb-28 flex flex-col min-h-screen select-none font-tnr">
@@ -130,11 +234,20 @@
             </div>
 
             <!-- Khối Tác Giả Header -->
-            <div onclick="openAuthorModal()" class="hidden lg:flex items-center space-x-2.5 bg-indigo-50 border-2 border-indigo-200 hover:bg-indigo-100 px-3 py-1.5 rounded-2xl cursor-pointer transition shadow-sm">
-                <img src="logo.png" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=DC&background=0044cc&color=fff&size=64&bold=true'" alt="Logo DC" class="w-8 h-8 rounded-full object-cover border border-indigo-300">
+            <div onclick="openAuthorModal()" class="hidden lg:flex items-center space-x-2.5 bg-indigo-50 border-2 border-indigo-200 hover:bg-indigo-100 px-3 py-1.5 rounded-2xl cursor-pointer transition shadow-sm led-dc-frame led-dc-header">
+                <img src="logo.png" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=DC&background=0044cc&color=fff&size=64&bold=true'" alt="Logo DC" class="w-8 h-8 rounded-full object-cover border border-indigo-300 led-dc-logo">
                 <div class="text-left leading-tight">
                     <p class="text-xs font-bold uppercase text-indigo-600">Tác Giả Thiết Kế</p>
                     <p class="text-sm font-bold text-indigo-950">Nguyễn Công Dinh • Cần Thơ</p>
+                </div>
+            </div>
+
+            <!-- ĐỒNG HỒ & NGÀY THÁNG NĂM -->
+            <div class="smart-clock-box px-3 py-1.5 rounded-2xl flex items-center space-x-2 min-h-[40px]" aria-label="Đồng hồ và ngày hiện tại">
+                <span class="text-2xl" aria-hidden="true">🕐</span>
+                <div class="leading-tight text-left">
+                    <p id="smart-clock-time" class="smart-clock-time text-lg font-bold text-emerald-900">--:--:--</p>
+                    <p id="smart-clock-date" class="smart-clock-date text-[11px] sm:text-xs font-bold text-gray-600">--/--/----</p>
                 </div>
             </div>
 
@@ -578,8 +691,8 @@
                 </div>
             </div>
 
-            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 p-3.5 px-5 rounded-2xl flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-sm">
-                <div class="w-14 h-14 rounded-full p-0.5 bg-gradient-to-tr from-blue-600 to-cyan-400 logo-glow flex-shrink-0">
+            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 p-3.5 px-5 rounded-2xl flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 shadow-sm led-dc-frame led-dc-footer">
+                <div class="w-14 h-14 rounded-full p-0.5 bg-gradient-to-tr from-blue-600 to-cyan-400 logo-glow flex-shrink-0 led-dc-logo">
                     <img src="logo.png" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=DC&background=0044cc&color=fff&size=128&bold=true'" alt="Logo Dinh Công" class="w-full h-full rounded-full object-cover bg-blue-950">
                 </div>
                 <div class="text-left">
@@ -587,9 +700,14 @@
                     <p class="text-lg font-bold text-indigo-950">Nguyễn Công Dinh</p>
                     <p class="text-xs font-bold text-gray-600">📍 Phước Thọ, Mỹ Phước, TP. Cần Thơ</p>
                 </div>
-                <a href="https://zalo.me/0393990638" target="_blank" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow transition flex items-center space-x-1 border-b-2 border-blue-900 min-h-[44px]">
-                    <span>📱 Zalo: 039.399.0638</span>
-                </a>
+                <div class="flex flex-col sm:flex-row items-center gap-2">
+                    <a href="https://zalo.me/0393990638" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow transition flex items-center justify-center space-x-1 border-b-2 border-blue-900 min-h-[44px]">
+                        <span>📱 Zalo: 039.399.0638</span>
+                    </a>
+                    <a href="https://zalo.me/g/ruhsiahas2l4voiuq3ex" target="_blank" rel="noopener noreferrer" class="bg-cyan-600 hover:bg-cyan-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow transition flex items-center justify-center space-x-1 border-b-2 border-cyan-900 min-h-[44px]">
+                        <span>👥 Nhóm Zalo Phụ Huynh</span>
+                    </a>
+                </div>
             </div>
         </div>
     </footer>
@@ -647,10 +765,10 @@
 
     <!-- MODAL THÔNG TIN TÁC GIẢ -->
     <div id="author-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-indigo-400 relative text-center space-y-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-indigo-400 relative text-center space-y-4 led-dc-frame led-dc-modal">
             <button onclick="closeAuthorModal()" class="absolute top-4 right-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-10 h-10 font-bold text-xl flex items-center justify-center">✕</button>
             
-            <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-blue-600 to-cyan-400 mx-auto logo-glow">
+            <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-blue-600 to-cyan-400 mx-auto logo-glow led-dc-logo">
                 <img src="logo.png" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=DC&background=0044cc&color=fff&size=128&bold=true'" alt="Logo Dinh Công" class="w-full h-full rounded-full object-cover bg-blue-950">
             </div>
             <div>
@@ -663,9 +781,14 @@
                 Chuyên thiết kế các ứng dụng web học tập trực quan, sinh động giúp bé tiếp thu kiến thức nhanh chóng và hào hứng hơn!
             </p>
 
-            <a href="https://zalo.me/0393990638" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg px-6 py-3 rounded-2xl shadow-lg border-b-4 border-blue-900 flex items-center justify-center space-x-2 w-full min-h-[48px]">
-                <span>💬 Liên hệ Zalo: 039.399.0638</span>
-            </a>
+            <div class="space-y-3">
+                <a href="https://zalo.me/0393990638" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg px-6 py-3 rounded-2xl shadow-lg border-b-4 border-blue-900 flex items-center justify-center space-x-2 w-full min-h-[48px]">
+                    <span>💬 Liên hệ Zalo: 039.399.0638</span>
+                </a>
+                <a href="https://zalo.me/g/ruhsiahas2l4voiuq3ex" target="_blank" rel="noopener noreferrer" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-lg px-6 py-3 rounded-2xl shadow-lg border-b-4 border-cyan-900 flex items-center justify-center space-x-2 w-full min-h-[48px]">
+                    <span>👥 Tham Gia Nhóm Zalo</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -3234,5 +3357,36 @@
             });
         }
     </script>
+
+    <script>
+        // Đồng hồ thời gian thực - dùng giờ trên thiết bị người dùng.
+        (function initSmartClock() {
+            const dayNames = [
+                'Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư',
+                'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'
+            ];
+
+            function pad2(value) {
+                return String(value).padStart(2, '0');
+            }
+
+            function updateSmartClock() {
+                const now = new Date();
+                const timeEl = document.getElementById('smart-clock-time');
+                const dateEl = document.getElementById('smart-clock-date');
+                if (!timeEl || !dateEl) return;
+
+                timeEl.textContent =
+                    `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+
+                dateEl.textContent =
+                    `${dayNames[now.getDay()]}, ${pad2(now.getDate())}/${pad2(now.getMonth() + 1)}/${now.getFullYear()}`;
+            }
+
+            updateSmartClock();
+            setInterval(updateSmartClock, 1000);
+        })();
+    </script>
+
 </body>
 </html>
