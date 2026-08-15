@@ -886,7 +886,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIC TOÀN BỘ BẰNG TIẾNG VIỆT CHUẨN (2.0E HOTFIXED AUDIO) -->
+    <!-- SCRIPT LOGIC TOÀN BỘ BẰNG TIẾNG VIỆT CHUẨN (2.0E HOTFIXED VIETNAMESE TTS) -->
     <script>
         /* 0. HÀM BẢO VỆ XSS (ESCAPE HTML) */
         function escapeHTML(str) {
@@ -1008,7 +1008,51 @@
             return tenStr + " " + ones[unit];
         }
 
-        /* 5. BỘ PHÁT ÂM TIẾNG VIỆT ĐỘC QUYỀN (KHÔNG PHỤ THUỘC AUDIOCONTEXT) */
+        /* 5. BỘ TÌM GIỌNG TIẾNG VIỆT CHẶT CHẼ (CHỐNG PHÁT GIỌNG ANH) */
+        function findVietnameseVoice() {
+            if (!('speechSynthesis' in window)) return null;
+            const voices = window.speechSynthesis.getVoices();
+            return voices.find(v => v.lang && v.lang.toLowerCase() === 'vi-vn') ||
+                   voices.find(v => v.lang && v.lang.toLowerCase().startsWith('vi')) ||
+                   null;
+        }
+
+        function getVietnameseVoiceAsync() {
+            return new Promise(resolve => {
+                if (!('speechSynthesis' in window)) {
+                    resolve(null);
+                    return;
+                }
+                const v = findVietnameseVoice();
+                if (v) {
+                    resolve(v);
+                    return;
+                }
+                let resolved = false;
+                const timer = setTimeout(() => {
+                    if (!resolved) {
+                        resolved = true;
+                        window.speechSynthesis.removeEventListener('voiceschanged', onVoices);
+                        resolve(findVietnameseVoice());
+                    }
+                }, 1500);
+
+                function onVoices() {
+                    if (!resolved) {
+                        const voiceFound = findVietnameseVoice();
+                        if (voiceFound || window.speechSynthesis.getVoices().length > 0) {
+                            resolved = true;
+                            clearTimeout(timer);
+                            window.speechSynthesis.removeEventListener('voiceschanged', onVoices);
+                            resolve(voiceFound);
+                        }
+                    }
+                }
+                window.speechSynthesis.addEventListener('voiceschanged', onVoices);
+            });
+        }
+
+        /* 6. BỘ PHÁT ÂM TIẾNG VIỆT ĐỘC QUYỀN (ƯU TIÊN GOOGLE TTS -> WEB SPEECH CHUẨN VIỆT) */
         let currentTTSAudio = null;
         let toastTimeout = null;
 
@@ -1066,14 +1110,32 @@
             }
         }
 
-        function speakWebSpeechVietnameseOnly(text, callback = null) {
+        async function speakWebSpeechVietnameseOnly(text, callback = null) {
             if (!parentSettings.voiceEnabled) {
                 if (callback) setTimeout(callback, 50);
                 return;
             }
 
             if (!('speechSynthesis' in window)) {
-                if (callback) setTimeout(callback, 1200);
+                console.warn('Thiết bị không hỗ trợ SpeechSynthesis.');
+                if (callback) setTimeout(callback, 500);
+                return;
+            }
+
+            const viVoice = await getVietnameseVoiceAsync();
+
+            console.log(
+                'Available voices:',
+                window.speechSynthesis.getVoices().map(v => ({
+                    name: v.name,
+                    lang: v.lang
+                }))
+            );
+            console.log('Vietnamese voice:', viVoice);
+
+            if (!viVoice) {
+                console.warn('Không tìm thấy giọng tiếng Việt trên thiết bị. Bỏ qua phát âm để tránh đọc bằng giọng tiếng Anh.');
+                if (callback) setTimeout(callback, 500);
                 return;
             }
 
@@ -1085,12 +1147,7 @@
                 utterance.rate = 0.85;
                 utterance.volume = 1.0;
                 utterance.pitch = 1.0;
-
-                const voices = window.speechSynthesis.getVoices();
-                const viVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('vi'));
-                if (viVoice) {
-                    utterance.voice = viVoice;
-                }
+                utterance.voice = viVoice;
 
                 let finished = false;
                 const finish = () => {
@@ -1101,7 +1158,10 @@
                 };
 
                 utterance.onend = finish;
-                utterance.onerror = finish;
+                utterance.onerror = (e) => {
+                    console.warn('Lỗi khi phát utterance:', e);
+                    finish();
+                };
 
                 window.speechSynthesis.resume();
                 window.speechSynthesis.speak(utterance);
@@ -1117,7 +1177,7 @@
             };
         }
 
-        /* 6. DỮ LIỆU BẢNG 29 CHỮ CÁI TIẾNG VIỆT */
+        /* 7. DỮ LIỆU BẢNG 29 CHỮ CÁI TIẾNG VIỆT */
         const VIETNAMESE_ALPHABET = [
             { upper: 'A', lower: 'a', word: 'Quả Táo', readName: 'Chữ A. Quả táo.', emoji: '🍎' },
             { upper: 'Ă', lower: 'ă', word: 'Cái Cặp', readName: 'Chữ Ă. Cái cặp.', emoji: '🎒' },
@@ -1150,7 +1210,7 @@
             { upper: 'Y', lower: 'y', word: 'Y Tế', readName: 'Chữ Y dài. Dụng cụ y tế.', emoji: '🩺' }
         ];
 
-        /* 7. HELPER ĐỌC LOCALSTORAGE AN TOÀN */
+        /* 8. HELPER ĐỌC LOCALSTORAGE AN TOÀN */
         function getStorageJSON(key, defaultVal) {
             try {
                 const val = localStorage.getItem(key);
@@ -1160,7 +1220,7 @@
             }
         }
 
-        /* 8. KHỞI TẠO NGÀY HỌC AN TOÀN (NGƯỜI DÙNG MỚI BẮT ĐẦU TỪ 0) */
+        /* 9. KHỞI TẠO NGÀY HỌC AN TOÀN (NGƯỜI DÙNG MỚI BẮT ĐẦU TỪ 0) */
         let initialStudyDays = null;
         const storedStudyDays = localStorage.getItem('cuuchuong_total_study_days');
         const storedOldSessions = localStorage.getItem('cuuchuong_total_study_sessions');
@@ -1175,7 +1235,7 @@
             initialStudyDays = 0;
         }
 
-        /* 9. SETTINGS PHỤ HUYNH */
+        /* 10. SETTINGS PHỤ HUYNH */
         function getParentSettings() {
             const defaults = {
                 voiceEnabled: true,
@@ -1198,7 +1258,7 @@
             localStorage.setItem('cuuchuong_parent_settings', JSON.stringify(parentSettings));
         }
 
-        /* 10. STATE CHÍNH CỦA PHIÊN BẢN 2.0E */
+        /* 11. STATE CHÍNH CỦA PHIÊN BẢN 2.0E */
         let state = {
             childName: localStorage.getItem('cuuchuong_child_name') || '',
             stars: parseInt(localStorage.getItem('cuuchuong_stars') || '0', 10) || 0,
@@ -1246,7 +1306,7 @@
             }
         }
 
-        /* 11. HẸN GIỜ PHIÊN HỌC (SESSION STUDY TIMER) */
+        /* 12. HẸN GIỜ PHIÊN HỌC (SESSION STUDY TIMER) */
         let studySessionActive = false;
         let sessionAccumulatedMs = 0;
         let sessionActiveStartedAt = null;
@@ -1646,7 +1706,7 @@
             if (tabName === 'learn') renderTableSelectGrid();
         }
 
-        /* 12. HỌC BẢNG CỬU CHƯƠNG (2 ĐẾN 9) */
+        /* 13. HỌC BẢNG CỬU CHƯƠNG (2 ĐẾN 9) */
         function renderTableSelectGrid() {
             const grid = document.getElementById('table-select-grid');
             if (!grid) return;
@@ -1788,7 +1848,7 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        /* 13. THEO DÕI VÀ LƯU KẾT QUẢ ĐÚNG / SAI */
+        /* 14. THEO DÕI VÀ LƯU KẾT QUẢ ĐÚNG / SAI */
         function recordAnswer(a, b, isCorrect, isReview = false) {
             const tableKey = String(a);
             if (!state.tableStats[tableKey]) {
@@ -1851,7 +1911,7 @@
             }
         }
 
-        /* 14. KHỞI TẠO CHẾ ĐỘ ÔN CÂU SAI */
+        /* 15. KHỞI TẠO CHẾ ĐỘ ÔN CÂU SAI */
         function startWrongReviewFromHome() {
             switchTab('game');
             startWrongReview();
@@ -1918,7 +1978,7 @@
             renderCurrentQuestion();
         }
 
-        /* 15. TRÒ CHƠI TOÁN HỌC & TIẾN TRÌNH */
+        /* 16. TRÒ CHƠI TOÁN HỌC & TIẾN TRÌNH */
         let currentGame = {
             type: null,
             questions: [],
@@ -2209,7 +2269,7 @@
             }
         }
 
-        /* 16. KIỂM TRA ĐÁP ÁN (CHỐNG BẤM NHIỀU LẦN - KHÔNG TRỪ SAO) */
+        /* 17. KIỂM TRA ĐÁP ÁN (CHỐNG BẤM NHIỀU LẦN - KHÔNG TRỪ SAO) */
         function checkAnswer(isCorrect, btnElement = null, a = null, b = null) {
             if (currentGame.answerLocked) return;
             currentGame.answerLocked = true;
@@ -2249,7 +2309,7 @@
             }, 1000);
         }
 
-        /* 17. MÀN HÌNH KẾT QUẢ TRÒ CHƠI */
+        /* 18. MÀN HÌNH KẾT QUẢ TRÒ CHƠI */
         function renderGameResults() {
             playVictorySound();
             confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
@@ -2348,7 +2408,7 @@
             `;
         }
 
-        /* 18. LOGIC TIẾP TỤC BÀI HỌC GẦN NHẤT */
+        /* 19. LOGIC TIẾP TỤC BÀI HỌC GẦN NHẤT */
         function continueLastLearning() {
             playPopSound();
             const act = state.lastLearningActivity;
@@ -2373,7 +2433,7 @@
             }
         }
 
-        /* 19. RENDER TRANG CHỦ CÁ NHÂN HÓA (CHỈ ĐỌC STATE) */
+        /* 20. RENDER TRANG CHỦ CÁ NHÂN HÓA (CHỈ ĐỌC STATE) */
         function renderHomeDashboard() {
             const timeInfo = getTimeGreetingInfo();
             const timeIconEl = document.getElementById('home-time-icon');
@@ -2501,29 +2561,6 @@
             if (badgeSummaryEl) {
                 badgeSummaryEl.innerText = `Bé đã mở ${unlockedCount} / ${ALL_BADGES.length} huy hiệu`;
             }
-        }
-
-        /* 20. LOGIC ĐÁNH GIÁ TRẠNG THÁI TỪNG BẢNG CỬU CHƯƠNG */
-        function getTableStatus(attempts, accuracy) {
-            if (attempts === 0) {
-                return { text: 'Chưa Học', colorClass: 'text-gray-500 bg-gray-100 border-gray-300', icon: '⚪' };
-            }
-            if (attempts < 10) {
-                return { text: 'Đang Làm Quen', colorClass: 'text-blue-700 bg-blue-50 border-blue-200', icon: '🔵' };
-            }
-            if (accuracy < 60) {
-                return { text: 'Cần Ôn', colorClass: 'text-red-700 bg-red-50 border-red-200', icon: '🔴' };
-            }
-            if (accuracy < 80) {
-                return { text: 'Đang Tiến Bộ', colorClass: 'text-amber-700 bg-amber-50 border-amber-200', icon: '🟡' };
-            }
-            if (accuracy < 90) {
-                return { text: 'Tốt', colorClass: 'text-emerald-700 bg-emerald-50 border-emerald-200', icon: '🟢' };
-            }
-            if (accuracy >= 90 && attempts >= 20) {
-                return { text: 'Thành Thạo', colorClass: 'text-purple-700 bg-purple-50 border-purple-200', icon: '🏆' };
-            }
-            return { text: 'Rất Tốt', colorClass: 'text-emerald-700 bg-emerald-50 border-emerald-200', icon: '🟢' };
         }
 
         /* 21. RENDER MÀN HÌNH "📊 TIẾN BỘ CỦA BÉ" */
